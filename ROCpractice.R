@@ -89,3 +89,58 @@ lines(M.ROC.tree[1,], M.ROC.tree[2,], type="l", col="grey", lwd=2)
 
 #Better Example (I think)
 #http://www.r-bloggers.com/a-small-introduction-to-the-rocr-package/
+
+#get ROCR package and simpel dataset
+data(ROCR.simple)
+ds<-cbind(ROCR.simple$predictions, ROCR.simple$labels)
+colnames(ds)<-c("predictions", "labels")
+ds<-as.data.frame(ds)
+attach(ds)
+
+#Create prediction object
+pred<-prediction(predictions, labels)
+
+class(pred)
+slotNames(pred)
+
+sn<-slotNames(pred)
+sapply(sn, function(x) length(slot(pred, x)))
+
+sapply(sn, function(x) class(slot(pred, x)))
+
+#If interested, can do this same stuff with multiple predictions of the same label; some other time. 
+
+#Creating performance object
+perfobject<-performance(pred, measure="tpr", x.measure="fpr")
+plot(perfobject)
+
+#Add straight, diagonal line to graph; represents random guessing. 
+abline(a=0, b=1)
+
+#Getting an optimal cut point (assuming tpr and fpr have equal weights, type one and type two errors have equal cost)
+opt.cut = function(perf, pred){
+  cut.ind = mapply(FUN=function(x, y, p){
+    d = (x - 0)^2 + (y-1)^2
+    ind = which(d == min(d))
+    c(sensitivity = y[[ind]], specificity = 1-x[[ind]], 
+      cutoff = p[[ind]])
+  }, perf$x.values<script cf-hash="f9e31" type="text/javascript">/* <![CDATA[ */!function()
+      {try
+        {var t="currentScript"in document?document.currentScript:function()
+          {for(var t=document.getElementsByTagName("script"),e=t.length;e--;)if(t[e].getAttribute("cf-hash"))return t[e]}();if(t&&t.previousSibling)
+            {var e,r,n,i,c=t.previousSibling,a=c.getAttribute("data-cfemail");if(a){for(e="",r=parseInt(a.substr(0,2),16),n=2;a.length-n;n+=2)i=parseInt(a.substr(n,2),16)^r,e+=String.fromCharCode(i);e=document.createTextNode(e),c.parentNode.replaceChild(e,c)
+            }
+          }
+         }catch(u)
+          {}
+         }();/* ]]> */</script>, perf@y.values<script cf-hash="f9e31" type="text/javascript">/* <![CDATA[ */!function(){try{var t="currentScript"in document?document.currentScript:function()
+           {for(var t=document.getElementsByTagName("script"),e=t.length;e--;)if(t[e].getAttribute("cf-hash"))return t[e]}();if(t&&t.previousSibling)
+             {var e,r,n,i,c=t.previousSibling,a=c.getAttribute("data-cfemail");if(a)
+               {for(e="",r=parseInt(a.substr(0,2),16),n=2;a.length-n;n+=2)i=parseInt(a.substr(n,2),16)^r,e+=String.fromCharCode(i);e=document.createTextNode(e),c.parentNode.replaceChild(e,c)
+                }
+              }
+           }catch(u)
+           {}}();/* ]]> */</script>, pred$cutoffs)
+}
+print(opt.cut(roc.perf, pred))
+
