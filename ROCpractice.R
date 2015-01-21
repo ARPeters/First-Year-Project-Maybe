@@ -26,7 +26,7 @@ head(db)
 reg=glm(Y~X1+X2+X3bis,family=binomial,data=db)
 
 S=predict(reg, type="response")
-
+?predict()
 #Function that gives contingency table (I expect)
 roc.curve=function(s,print=FALSE){
   Ps=(S>s)*1
@@ -51,8 +51,8 @@ ROC.curve=Vectorize(roc.curve)
 I=(((S>threshold)&(Y==0))|((S<=threshold)&(Y==1)))
 plot(S,Y,col=c("red", "blue")[I+1], pch=19, cex=.7, xlab="", ylab="")
 
-#No idea what this is supposed to do. Can't help it. 
-#abline(v=seuil,col="gray")
+#Add vertical line, representing random guessing
+abline(a=0, b=1,col="gray")
 
 M.ROC=ROC.curve(seq(0,1,by=.01))
 plot(M.ROC[1,], M.ROC[2,], col="grey", lwd=2, type="l", xlab="False Positive Rate", ylab="True Positive Rate")
@@ -86,7 +86,7 @@ plot(M.ROC.tree[1,], M.ROC.tree[2,], col="grey", lwd=2, type="l", xlab="False Po
 plot(M.ROC[1,], M.ROC[2,], col="grey", lwd=2, type="l", xlab="False Positive Rate", ylab="True Positive Rate")
 lines(M.ROC.tree[1,], M.ROC.tree[2,], type="l", col="grey", lwd=2)
 
-
+#############################################################################################
 #Better Example (I think)
 #http://www.r-bloggers.com/a-small-introduction-to-the-rocr-package/
 
@@ -117,30 +117,18 @@ plot(perfobject)
 #Add straight, diagonal line to graph; represents random guessing. 
 abline(a=0, b=1)
 
-#Getting an optimal cut point (assuming tpr and fpr have equal weights, type one and type two errors have equal cost)
-opt.cut = function(perf, pred){
-  cut.ind = mapply(FUN=function(x, y, p){
-    d = (x - 0)^2 + (y-1)^2
-    ind = which(d == min(d))
-    c(sensitivity = y[[ind]], specificity = 1-x[[ind]], 
-      cutoff = p[[ind]])
-  }, perf$x.values<script cf-hash="f9e31" type="text/javascript">/* <![CDATA[ */!function()
-      {try
-        {var t="currentScript"in document?document.currentScript:function()
-          {for(var t=document.getElementsByTagName("script"),e=t.length;e--;)if(t[e].getAttribute("cf-hash"))return t[e]}();if(t&&t.previousSibling)
-            {var e,r,n,i,c=t.previousSibling,a=c.getAttribute("data-cfemail");if(a){for(e="",r=parseInt(a.substr(0,2),16),n=2;a.length-n;n+=2)i=parseInt(a.substr(n,2),16)^r,e+=String.fromCharCode(i);e=document.createTextNode(e),c.parentNode.replaceChild(e,c)
-            }
-          }
-         }catch(u)
-          {}
-         }();/* ]]> */</script>, perf@y.values<script cf-hash="f9e31" type="text/javascript">/* <![CDATA[ */!function(){try{var t="currentScript"in document?document.currentScript:function()
-           {for(var t=document.getElementsByTagName("script"),e=t.length;e--;)if(t[e].getAttribute("cf-hash"))return t[e]}();if(t&&t.previousSibling)
-             {var e,r,n,i,c=t.previousSibling,a=c.getAttribute("data-cfemail");if(a)
-               {for(e="",r=parseInt(a.substr(0,2),16),n=2;a.length-n;n+=2)i=parseInt(a.substr(n,2),16)^r,e+=String.fromCharCode(i);e=document.createTextNode(e),c.parentNode.replaceChild(e,c)
-                }
-              }
-           }catch(u)
-           {}}();/* ]]> */</script>, pred$cutoffs)
-}
-print(opt.cut(roc.perf, pred))
+#Graphing Accuracy (total proportion of correct predictions, (TP+TN)/(P+N)); Cutoffs on x axis, accuracy estimates on y.
+accPerf<-performance(pred, measure="acc")
+plot(accPerf)
 
+#AUC, Area under the curve. 
+aucPerf<-performance(pred, measure="auc")
+aucPerf@y.values
+
+#Partial AUC; Area under subset of curve defined by max FPR.
+MaxFPR=0.1
+paucPerf<-performance(pred, measure="auc", fpr.stop=MaxFPR)
+paucPerf@y.values
+
+#Standardize to give auc relative to its own area
+spaucPerf<-as.numeric(paucPerf@y.values)/MaxFPR
