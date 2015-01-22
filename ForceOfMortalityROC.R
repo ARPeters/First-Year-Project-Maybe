@@ -1,3 +1,6 @@
+#Clearing global environment
+rm(list = ls(all = TRUE)) 
+
 library(survival)
 library(ROCR)
 library(foreign)
@@ -64,9 +67,6 @@ summary(Ch4Test1)
 Ch4Test1Poisson <- glm(Status ~ Clinic + Prison + Dose + offset(log(SurvivalTime)), (family=poisson), data=dsAddicts)
 summary(Ch4Test1Poisson)
 
-#dsAddictsOrd <- dsAddicts[order(dsAddicts$SurvivalTime,-dsAddicts$Status),]
-#dsAddictsNew <- dsAddictsOrd[!duplicated(dsAddictsOrd$SurvivalTime),]
-
 eventTimes <- unique(dsAddicts$SurvivalTime[dsAddicts$Status==1])
 eventTimes <- eventTimes[order(eventTimes)]
 
@@ -93,9 +93,11 @@ ptProcessDat[ptProcessDat$Subject %in% c(166,111),]
 dim(ptProcessDat)
 colnames(dsAddicts)
 head(ptProcessDat)
+
 #The counting process version of a Cox regression model
 Ch4Test1PoissonNew <- glm(yir ~ I(as.factor(r)) + Clinic + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=ptProcessDat)
 summary(Ch4Test1PoissonNew)
+
 #compare to the coxph output
 summary(Ch4Test1Poisson)
 summary(Ch4Test1)
@@ -124,3 +126,8 @@ par(new=TRUE)
 plot(perfCoxph2)
 abline(a=0,b=1)
 
+
+#So...
+#Calculate area under curve at each value of tr?
+# Expand ptProcessDat to allow for time-variant predictor variables; look at graphs of AUC across time to compare
+# predictive efficiency across time. 
