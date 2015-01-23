@@ -5,6 +5,11 @@ library(survival)
 library(ROCR)
 library(foreign)
 
+
+
+install.packages("survivalROC.r")
+
+library(Epi)
 #getting practice data
 dsVets <- read.dta("http://web1.sph.emory.edu/dkleinb/allDatasets/surv2datasets/vets.dta")
 names(dsVets)<-c("tx", "Large", "Adeno", "Small", "Squamous", "survt", "perf", "DisDur", "age", "priortx", "status")
@@ -140,6 +145,12 @@ perfCoxph2AUC@y.values
 #Graph the change in AUC across time
 
 aucList<-length(max(ptProcessDat$r))-1
+accList<-length(max(ptProcessDat$r))-1
+fprList<-length(max(ptProcessDat$r))-1
+tprList<-length(max(ptProcessDat$r))-1
+fnrList<-length(max(ptProcessDat$r))-1
+tnrList<-length(max(ptProcessDat$r))-1
+
 
 for(i in 2:max(ptProcessDat$r)){
   
@@ -177,13 +188,11 @@ cox.zph(coxphTest1, transform="rank")
 #head(ptProcessDat)
 
 HFR90<-as.integer()
-length(HFR90[1:10])<-length(ptProcessDat$Subject)
+length(HFR90)<-length(ptProcessDat$Subject)
 
 for(i in 1:length(ptProcessDat$Subject)){
   HFR90[i]<-ifelse(ptProcessDat[i,8]<428, 0, 1)
 }
-
-
 
 dsAddictsEx<-cbind(ptProcessDat, HFR90)
 
@@ -197,10 +206,171 @@ aucListHFR90<-length(max(dsAddictsEx$r))-1
 for(i in 2:max(dsAddictsEx$r)){
   
   dsSubset<-dsAddictsEx[dsAddictsEx$r<=i,]
-  glmSubset<-glm(yir ~ I(as.factor(r)) + Clinic + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsSubset)
+  glmSubset<-glm(yir ~ I(as.factor(r)) + Clinic + Clinic*HFR90 + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsSubset)
   predSubset<-prediction(glmSubset$linear.predictors, dsSubset$yir)
   perfSubset<-performance(predSubset, measure="auc")
 
   aucListHFR90[i-1]<-as.numeric(perfSubset@y.values)
   
 }
+
+
+#Graph AUC values across event-time intervals (r), for ph and extended models on same graph
+#Increased predictive efficiency after heaviside funciton kicks in
+#But, why would we use this, and not just calculate AUC once, on model applied to all data?
+AucIntervalPairsHFR90<-cbind(c(1:length(aucListHFR90)),aucListHFR90)
+plot(AucIntervalPairsHFR90, xlab=c("Intervals, r, defined by unique event times"), ylab=c("AUC"), col=c("red"))
+par(new=TRUE)
+plot(AucIntervalPairs, xlab=c("Intervals, r, defined by unique event times"), ylab=c("AUC"))
+
+#Let's try this: HFR categories at r = 40, 80, 120 (event time at tr=168, 358, 652  )
+
+#peek<-ptProcessDat[ptProcessDat$r==120,]
+#head(peek)
+
+HFR4080120<-as.integer()
+length(HFR4080120)<-length(ptProcessDat$Subject)
+
+
+for(i in 1:length(ptProcessDat$Subject)){
+  HFR4080120[i]<-ifelse(ptProcessDat[i,8]<168, 0, ifelse(ptProcessDat[i,8]<358, 1, 2))
+}
+
+dsAddictsEx<-cbind(ptProcessDat, HFR90, HFR4080120)
+
+dsAddictsEx$HFR4080120[16000:16100]
+factor(dsAddicts$HFR4080120)
+
+aucListHFR4080120<-length(max(dsAddictsEx$r))-1
+
+for(i in 2:max(dsAddictsEx$r)){
+  
+  dsSubset<-dsAddictsEx[dsAddictsEx$r<=i,]
+  glmSubset<-glm(yir ~ I(as.factor(r)) + Clinic + Clinic*HFR4080120 + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsSubset)
+  predSubset<-prediction(glmSubset$linear.predictors, dsSubset$yir)
+  perfSubset<-performance(predSubset, measure="auc")
+  
+  aucListHFR4080120[i-1]<-as.numeric(perfSubset@y.values)
+}
+
+AucIntervalPairsHFR4080120<-cbind(c(1:length(aucListHFR4080120)),aucListHFR4080120)
+
+
+#Results are 100% to be expected; no surprises, so why use this method instead of just comparing model fit? 
+#Or just AUC of model over all data?
+plot(AucIntervalPairsHFR4080120, xlab=c("Intervals, r, defined by unique event times"), ylab=c("AUC"), col=c("blue"))
+par(new=TRUE)
+plot(AucIntervalPairsHFR90, xlab=c("Intervals, r, defined by unique event times"), ylab=c("AUC"), col=c("red"))
+par(new=TRUE)
+plot(AucIntervalPairs, xlab=c("Intervals, r, defined by unique event times"), ylab=c("AUC"))
+
+
+#...because...let's look at some measures other than AUC!
+
+aucList<-length(max(ptProcessDat$r))-1
+accList<-length(max(ptProcessDat$r))-1
+fprList<-length(max(ptProcessDat$r))-1
+tprList<-length(max(ptProcessDat$r))-1
+fnrList<-length(max(ptProcessDat$r))-1
+tnrList<-length(max(ptProcessDat$r))-1
+
+
+for(i in 2:max(ptProcessDat$r)){
+  
+  dsSubset<-ptProcessDat[ptProcessDat$r<=i,]
+  glmSubset<-glm(yir ~ I(as.factor(r)) + Clinic + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsSubset)
+  predSubset<-prediction(glmSubset$linear.predictors, dsSubset$yir)
+  perfSubsetAUC<-performance(predSubset, measure="auc")
+  perfSubsetACC<-performance(predSubset, "acc")
+  perfSubsetFPR<-performance(predSubset, measure="fpr")
+  perfSubsetTPR<-performance(predSubset, measure="tpr")
+  perfSubsetFNR<-performance(predSubset, measure="fnr")
+  perfSubsetTNR<-performance(predSubset, measure="tnr")
+  
+  
+  aucList[i-1]<-as.numeric(perfSubsetAUC@y.values)
+  accList[i-1]<-max(as.numeric(unlist(perfSubsetACC@y.values)))
+  fprList[i-1]<-max(as.numeric(unlist(perfSubsetFPR@y.values)))
+  tprList[i-1]<-max(as.numeric(unlist(perfSubsetTPR@y.values)))
+  fnrList[i-1]<-max(as.numeric(unlist(perfSubsetFNR@y.values)))
+  tnrList[i-1]<-max(as.numeric(unlist(perfSubsetTNR@y.values)))
+  
+}
+
+AucIntervalPair<-cbind(c(1:length(aucList)),aucList)
+plot(AucIntervalPair)
+
+AccIntervalPair<-cbind(c(1:length(accList)),accList)
+plot(AccIntervalPair)
+
+FprIntervalPair<-cbind(c(1:length(fprList)),fprList)
+plot(FprIntervalPair)
+
+TprIntervalPair<-cbind(c(1:length(tprList)),tprList)
+plot(TprIntervalPair)
+
+FnrIntervalPair<-cbind(c(1:length(fnrList)),fnrList)
+plot(FnrIntervalPair)
+
+TnrIntervalPair<-cbind(c(1:length(tnrList)),tnrList)
+plot(TnrIntervalPair)
+
+
+#Now for first extended cox model
+#HFR90
+
+HF90aucList<-length(max(ptProcessDat$r))-1
+HF90accList<-length(max(ptProcessDat$r))-1
+HF90fprList<-length(max(ptProcessDat$r))-1
+HF90tprList<-length(max(ptProcessDat$r))-1
+HF90fnrList<-length(max(ptProcessDat$r))-1
+HF90tnrList<-length(max(ptProcessDat$r))-1
+
+
+for(i in 2:max(dsAddictsEx$r)){
+  
+  dsSubset<-dsAddictsEx[dsAddictsEx$r<=i,]
+  glmSubset<-glm(yir ~ I(as.factor(r)) + Clinic + Clinic*HFR90 + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsSubset)
+  predSubset<-prediction(glmSubset$linear.predictors, dsSubset$yir)
+  perfSubsetHF90AUC<-performance(predSubset, measure="auc")
+  perfSubsetHF90ACC<-performance(predSubset, "acc")
+  perfSubsetHF90FPR<-performance(predSubset, measure="fpr")
+  perfSubsetHF90TPR<-performance(predSubset, measure="tpr")
+  perfSubsetHF90FNR<-performance(predSubset, measure="fnr")
+  perfSubsetHF90TNR<-performance(predSubset, measure="tnr")
+  
+  
+  HF90aucList[i-1]<-as.numeric(perfSubsetHF90AUC@y.values)
+  HF90accList[i-1]<-max(as.numeric(unlist(perfSubsetHF90ACC@y.values)))
+  HF90fprList[i-1]<-max(as.numeric(unlist(perfSubsetHF90FPR@y.values)))
+  HF90tprList[i-1]<-max(as.numeric(unlist(perfSubsetHF90TPR@y.values)))
+  HF90fnrList[i-1]<-max(as.numeric(unlist(perfSubsetHF90FNR@y.values)))
+  HF90tnrList[i-1]<-max(as.numeric(unlist(perfSubsetHF90TNR@y.values)))
+  
+}
+
+
+
+HF90AucIntervalPair<-cbind(c(1:length(aucList)),aucList)
+plot(HF90AucIntervalPair, col=c("red"))
+par(new=TRUE)
+plot(AucIntervalPairs, xlab=c("Intervals, r, defined by unique event times"), ylab=c("AUC"))
+
+
+HF90AccIntervalPair<-cbind(c(1:length(accList)),accList)
+plot(HF90AccIntervalPair)
+par(new=TRUE)
+plot(AucIntervalPairs, xlab=c("Intervals, r, defined by unique event times"), ylab=c("AUC"))
+
+
+HF90FprIntervalPair<-cbind(c(1:length(fprList)),fprList)
+plot(HF90FprIntervalPair)
+
+HF90TprIntervalPair<-cbind(c(1:length(tprList)),tprList)
+plot(HF90TprIntervalPair)
+
+HF90FnrIntervalPair<-cbind(c(1:length(fnrList)),fnrList)
+plot(HF90FnrIntervalPair)
+
+HF90TnrIntervalPair<-cbind(c(1:length(tnrList)),tnrList)
+plot(HF90TnrIntervalPair)
