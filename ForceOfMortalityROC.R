@@ -63,7 +63,7 @@ names(dsAddicts)<-c("Subject", "Clinic", "Status", "SurvivalTime", "Prison", "Do
 Ch4Test1 <- coxph(Surv(SurvivalTime, Status) ~ Clinic + Prison + Dose, ties="breslow", data=dsAddicts)
 summary(Ch4Test1)
 
-#This uses point process model (poorly?)
+#This uses point process model
 Ch4Test1Poisson <- glm(Status ~ Clinic + Prison + Dose + offset(log(SurvivalTime)), (family=poisson), data=dsAddicts)
 summary(Ch4Test1Poisson)
 
@@ -102,7 +102,6 @@ summary(Ch4Test1PoissonNew)
 summary(Ch4Test1Poisson)
 summary(Ch4Test1)
 
-length(Ch4Test1PoissonNew$coefficients)
 CompTable2<-cbind(Ch4Test1PoissonNew$coefficients[141:143], Ch4Test1$coefficients)
 colnames(CompTable2)<-c("Poisson coefficients", "Cox coefficients")
 
@@ -111,10 +110,8 @@ CompTable2
 
 #Compare anyway!
 #So, ROC of poisson model; prediction and performance object
-predPoisson2<-prediction(Ch4Test1PoissonNew$linear.predictors, ptProcessDat$Status)
+predPoisson2<-prediction(Ch4Test1PoissonNew$linear.predictors, ptProcessDat$yir)
 perfPoisson2<-performance(predPoisson2, measure="tpr", x.measure="fpr")
-
-length(Ch4Test1PoissonNew$linear.predictors[141:143])
 
 #Ditto, coxPH model
 predCoxph2<-prediction(Ch4Test1$linear.predictors, dsAddicts$Status)
@@ -128,6 +125,82 @@ abline(a=0,b=1)
 
 
 #So...
-#Calculate area under curve at each value of tr?
+#Calculate area under curve at each value of r?
 # Expand ptProcessDat to allow for time-variant predictor variables; look at graphs of AUC across time to compare
 # predictive efficiency across time. 
+
+#Code for calculating AUC; a performance object (made from a prediction object) with "measure" set to "auc"
+perfPoisson2AUC<-performance(predPoisson2, measure="auc")
+perfPoisson2AUC@y.values
+
+perfCoxph2AUC<-performance(predCoxph2, measure="auc")
+perfCoxph2AUC@y.values
+
+#First, a regular cox ph model
+#Graph the change in AUC across time
+
+aucList<-length(max(ptProcessDat$r))-1
+
+for(i in 2:max(ptProcessDat$r)){
+  
+  dsSubset<-ptProcessDat[ptProcessDat$r<=i,]
+  glmSubset<-glm(yir ~ I(as.factor(r)) + Clinic + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsSubset)
+  predSubset<-prediction(glmSubset$linear.predictors, dsSubset$yir)
+  perfSubset<-performance(predSubset, measure="auc")
+  
+  aucList[i-1]<-as.numeric(perfSubset@y.values)
+  
+  }
+
+#Playing with the code that will go in the for loop
+#dsSubset<-ptProcessDat[ptProcessDat$r<=2,]
+#glmSubset<-glm(yir ~ I(as.factor(r)) + Clinic + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsSubset)
+#predSubset<-prediction(glmSubset$linear.predictors, dsSubset$yir)
+#perfSubset<-performance(predSubset, measure="auc")
+#perfSubset@y.values
+#aucList[1]<-perfSubset@y.values
+
+AucIntervalPairs<-cbind(c(1:length(aucList)),aucList)
+
+plot(AucIntervalPairs, xlab=c("Intervals, r, defined by unique event times"), ylab=c("AUC"))
+
+#Okay, so...schoenfield residuls of clinic show a significant correlation with time
+survAddicts<-Surv(dsAddicts$survt, dsAddicts$status==1)
+scurve<-survfit(survAddicts~1)
+summary(scurve)
+plot(scurve, conf.int=TRUE)
+coxphTest1<-coxph(Surv(dsAddicts$survt, dsAddicts$status==1)~clinic+prison+dose, ties="breslow", data=dsAddicts)
+coxphTest1
+cox.zph(coxphTest1, transform="rank")
+
+#Let's have an interaction between Clinic and a heaviside function that goes from 0 to 1 at r=90
+#head(ptProcessDat)
+
+HFR90<-as.integer()
+length(HFR90[1:10])<-length(ptProcessDat$Subject)
+
+for(i in 1:length(ptProcessDat$Subject)){
+  HFR90[i]<-ifelse(ptProcessDat[i,8]<428, 0, 1)
+}
+
+
+
+dsAddictsEx<-cbind(ptProcessDat, HFR90)
+
+#Extended Cox Model
+exPoissonHFR90<-glm(yir ~ I(as.factor(r)) + Clinic + Clinic*HFR90 + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsAddictsEx)
+
+#Now make the graph of AUC across time
+
+aucListHFR90<-length(max(dsAddictsEx$r))-1
+
+for(i in 2:max(dsAddictsEx$r)){
+  
+  dsSubset<-dsAddictsEx[dsAddictsEx$r<=i,]
+  glmSubset<-glm(yir ~ I(as.factor(r)) + Clinic + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsSubset)
+  predSubset<-prediction(glmSubset$linear.predictors, dsSubset$yir)
+  perfSubset<-performance(predSubset, measure="auc")
+
+  aucListHFR90[i-1]<-as.numeric(perfSubset@y.values)
+  
+}
