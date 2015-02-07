@@ -5,8 +5,6 @@ library(survival)
 library(ROCR)
 library(foreign)
 
-
-
 install.packages("survivalROC.r")
 
 library(Epi)
