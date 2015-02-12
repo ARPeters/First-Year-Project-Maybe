@@ -1,15 +1,11 @@
 #Clearing global environment
 rm(list = ls(all = TRUE)) 
+install.packages("survRegCensCov.r")
 
 library(survival)
 library(ROCR)
 library(foreign)
 
-
-
-install.packages("survivalROC.r")
-
-library(Epi)
 #getting practice data
 dsVets <- read.dta("http://web1.sph.emory.edu/dkleinb/allDatasets/surv2datasets/vets.dta")
 names(dsVets)<-c("tx", "Large", "Adeno", "Small", "Squamous", "survt", "perf", "DisDur", "age", "priortx", "status")
@@ -238,6 +234,8 @@ for(i in 1:length(ptProcessDat$Subject)){
 
 dsAddictsEx<-cbind(ptProcessDat, HFR90, HFR4080120)
 
+head(dsAddictsEx)
+
 dsAddictsEx$HFR4080120[16000:16100]
 factor(dsAddicts$HFR4080120)
 
@@ -374,3 +372,61 @@ plot(HF90FnrIntervalPair)
 
 HF90TnrIntervalPair<-cbind(c(1:length(tnrList)),tnrList)
 plot(HF90TnrIntervalPair)
+
+#Hm...cost?
+
+exPoissonHFR90
+costPracticePred<-prediction(exPoissonHFR90$linear.predictors, ptProcessDat$yir)
+costPracticePerf<-performance(costPracticePred, measure="acc", cost.fp=10, cost.fn=1)
+head(costPracticePerf@y.name)
+
+(as.numeric(unlist(costPracticePerf@y.values)))
+
+MinCostList<-list()
+length(MinCostList)<-9
+
+ptProcessCost<-glm(yir ~ I(as.factor(r)) + Clinic + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsAddictsEx)
+predCost<-prediction(ptProcessCost$linear.predictors, dsAddictsEx$yir)
+
+
+for(i in 1:9){
+  perfCost<-performance(predCost, measure="cost", cost.fp=i, cost.fn=(10-i))
+  MinCostList[i]<-min(as.numeric(unlist(perfCost@y.values)))
+}
+
+
+MinCostListHFR90<-list()
+length(MinCostListHFR90)<-9
+
+
+ptProcessCostHFR90<-glm(yir ~ I(as.factor(r)) + Clinic + Clinic*HFR90 + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsAddictsEx)
+predCostHFR90<-prediction(ptProcessCostHFR90$linear.predictors, dsAddictsEx$yir)
+
+for(i in 1:9){
+  
+  perfCostHFR90<-performance(predCostHFR90, measure="cost", cost.fp=i, cost.fn=10-i)
+  MinCostListHFR90[i]<-min(as.numeric(unlist(perfCostHFR90@y.values)))
+  
+}
+
+MinCostListHFR4080120<-list()
+length(MinCostListHFR4080120)<-9
+
+
+ptProcessCostHFR4080120<-glm(yir ~ I(as.factor(r)) + Clinic + Clinic*HFR4080120 + Prison + Dose + offset(I(log(dir))), family=poisson(link = "log"), data=dsAddictsEx)
+predCostHFR4080120<-prediction(ptProcessCostHFR4080120$linear.predictors, dsAddictsEx$yir)
+
+for(i in 1:9){
+  
+  perfCostHFR4080120<-performance(predCostHFR4080120, measure="cost", cost.fp=i, cost.fn=10-i)
+  MinCostListHFR4080120[i]<-min(as.numeric(unlist(perfCostHFR4080120@y.values)))
+  
+}
+#harumph
+
+##############################################
+#Cross-validated AUC
+install.packages("cvTools")
+library(cvTools)
+
+?cvFit()
