@@ -106,7 +106,7 @@ test<-coxph(Surv(Start, Stop, Event) ~ sex + Drug1 + Drug2, data=data)
 ##So...my turn.
 #Generate random survival times, random events; counting process expasion; add time-dependent element and use that for xmat in PermoAlgo.
 rm(list = ls(all.names = TRUE))
-n=50000
+n=5000
 m=365
 
 xmat<-matrix(nrow=n*m, ncol=11)
@@ -138,12 +138,15 @@ colnames(dsMaster)<-c("X1", "X2", "X3", "X4", "intForFt", "logtX1", "logtX2", "t
 
 dsTest<-as.matrix(dsMaster[,c(1:4, 6, 7)])
 head(dsTest)
+?runif()
+eventTimesMaybe<-runif(n, 1, m)
 
-dataTest<-permalgorithm(n, m, Xmat=dsTest, XmatNames=c("X1", "X2", "X3", "X4", "logtX1", "logtX2"), betas=c(0.7, 0.7, 0.1, 0.1, 0.7, 0.7))
-
+dataTest<-permalgorithm(n, m, Xmat=dsTest, XmatNames=c("X1", "X2", "X3", "X4", "logtX1", "logtX2"), eventRandom=eventTimesMaybe, betas=c(0.7, 0.7, 0.1, 0.1, 0.7, 0.7))
 head(dataTest)
-dataTest[121:300,]
 
-test<-coxph(Surv(Start, Stop, Event) ~ X1 + X2 + X3 + X4 + logtX1 + logtX2, data=dataTest)
+attach(dataTest)
+survobjectlogt<-Surv(time=Start, time2=Stop, Event==1)
 
-
+test<-coxph(survobjectlogt ~ X1 + X2 + X3 + X4 + logtX1 + logtX2, data=dataTest, ties="breslow")
+test
+detach(dataTest)
