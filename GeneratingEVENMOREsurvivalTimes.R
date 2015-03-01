@@ -105,4 +105,3 @@ for(l in 1:length(ftw)){
 }
 
 propCorrect
-
