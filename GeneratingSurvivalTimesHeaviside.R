@@ -5,7 +5,10 @@ library(foreign)
 library(PermAlgo)
 
 
-ftw<-c(0.01,0.35, 0.7)
+#ftw<-c(0.01,0.35, 0.7)
+
+ftw<-c(1:70)/100
+
 
 AICPropCorrect<-vector(length=length(ftw))
 BICPropCorrect<-vector(length=length(ftw))
@@ -17,7 +20,7 @@ for(l in 1:length(ftw)){
   betas<-c(0.7, 0.7, 0.1, 0.1, 0, 0, 0, 0, 0, 0, ftw[l], ftw[l])
 
   #Creating a table of AICs and BIC values
-  reps<-2
+  reps<-50
   
   fitTable<-data.frame(matrix(ncol=6, nrow=reps, ))
   colnames(fitTable)<-c("AICH", "BICH", "AICC","BICC", "AICLog","BICLog")
