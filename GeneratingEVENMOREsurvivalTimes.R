@@ -5,21 +5,21 @@ library(foreign)
 library(PermAlgo)
 
 
-ftw<-c(0.01, 0.7)
+ftw<-c(0.01,0.35, 0.7)
 propCorrect<-vector(length=length(ftw))
 
-
+#For: weight of a specific time function (heaviside, the last one)
 for(l in 1:length(ftw)){
+  #Declaring Betas: first, we are looking at the heaviside function, so the last two time-dependent variables are given betas, all else are given 0 weight. 
   betas<-c(0.7, 0.7, 0.1, 0.1, 0, 0, 0, 0, 0, 0, ftw[l], ftw[l])
 
   #Creating a table of AICs and BIC values
-  
-  
   reps<-2
   
   fitTable<-data.frame(matrix(ncol=6, nrow=reps, ))
   colnames(fitTable)<-c("AICH", "BICH", "AICC","BICC", "AICLog","BICLog")
   
+#For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
     n=5000
@@ -53,6 +53,7 @@ for(l in 1:length(ftw)){
       xmat[j,12]<-ifelse(xmat[j,5]<=182, 0, xmat[j,1])  
       xmat[j,13]<-ifelse(xmat[j,5]<=182, 0, xmat[j,2])
     }
+    
     dsMaster<-as.data.frame(xmat)
     
     colnames(dsMaster)<-c("Strong1", "Strong2", "Weak1", "Weak2", "intForFt", "logtStrong1", "logtStrong2", "t2Strong1", "t2Strong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H")
@@ -91,18 +92,22 @@ for(l in 1:length(ftw)){
     fitTable[i,5]<-AICLog
     fitTable[i,6]<-BICLog
     
+    AICPropTable<-fitTable[,c(1,3,5)]
+    
+    
+    AICPropTable$CorrectN<-ifelse(AICPropTable[i,1]==min(AICPropTable[i,1:3]),1,0)
+    print(AICPropTable)
+  
   }
   
-  AICPropTable<-fitTable[,c(1,3,5)]
-  
-  
-  for(k in 1:reps){ 
-    AICPropTable$CorrectN<-ifelse(AICPropTable[k,1]==min(AICPropTable[k,1:3]),1,0)
-  }
+  #AICPropTable<-fitTable[,c(1,3,5)]
+  #  for(k in 1:reps){ 
+  #  AICPropTable$CorrectN<-ifelse(AICPropTable[k,1]==min(AICPropTable[k,1:3]),1,0)
+  #  print(AICPropTable)
+  #}
   
   propCorrect[l]<-sum(AICPropTable$CorrectN)/reps
-  
+  print(propCorrect)
 }
 
-propCorrect
 
