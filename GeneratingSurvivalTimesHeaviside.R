@@ -6,11 +6,14 @@ library(PermAlgo)
 
 
 ftw<-c(0.01,0.35, 0.7)
-propCorrect<-vector(length=length(ftw))
+
+AICPropCorrect<-vector(length=length(ftw))
+BICPropCorrect<-vector(length=length(ftw))
 
 #For: weight of a specific time function (heaviside, the last one)
 for(l in 1:length(ftw)){
-  #Declaring Betas: first, we are looking at the heaviside function, so the last two time-dependent variables are given betas, all else are given 0 weight. 
+  #Declaring Betas: first, we are looking at the heaviside function, so the last two time-dependent 
+  #variables are given betas, all else are given 0 weight. 
   betas<-c(0.7, 0.7, 0.1, 0.1, 0, 0, 0, 0, 0, 0, ftw[l], ftw[l])
 
   #Creating a table of AICs and BIC values
@@ -19,7 +22,7 @@ for(l in 1:length(ftw)){
   fitTable<-data.frame(matrix(ncol=6, nrow=reps, ))
   colnames(fitTable)<-c("AICH", "BICH", "AICC","BICC", "AICLog","BICLog")
   
-#For this weight of specific time function, create this many sets of data  
+  #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
     n=5000
@@ -76,13 +79,13 @@ for(l in 1:length(ftw)){
     detach(dataH)
     
     AICH<-(-2*testH$loglik[2])+2*(length(testH$coefficients))
-    BICH<-(-2*testH$loglik[2])+(log(length(testH$coefficients)))
+    BICH<-(-2*testH$loglik[2])+log(n)*(length(testH$coefficients))
     
     AICC<-(-2*testControl$loglik[2])+2*(length(testControl$coefficients))
-    BICC<-(-2*testControl$loglik[2])+(log(length(testControl$coefficients)))
+    BICC<-(-2*testControl$loglik[2])+log(n)*(length(testControl$coefficients))
     
     AICLog<-(-2*testLog$loglik[2])+2*(length(testLog$coefficients))
-    BICLog<-(-2*testLog$loglik[2])+(log(length(testLog$coefficients)))
+    BICLog<-(-2*testLog$loglik[2])+log(n)*(length(testH$coefficients))
     
     
     fitTable[i,1]<-AICH
@@ -93,11 +96,11 @@ for(l in 1:length(ftw)){
     fitTable[i,6]<-BICLog
     
     AICPropTable<-fitTable[,c(1,3,5)]
+    BICPropTable<-fitTable[,c(2,4,6)]
     
     
-    AICPropTable$CorrectN<-ifelse(AICPropTable[i,1]==min(AICPropTable[i,1:3]),1,0)
-    print(AICPropTable)
-  
+    AICPropTable$Correct<-ifelse(AICPropTable[i,1]==min(AICPropTable[i,1:3]),1,0)
+    BICPropTable$Correct<-ifelse(BICPropTable[i,1]==min(BICPropTable[i,1:3]),1,0)
   }
   
   #AICPropTable<-fitTable[,c(1,3,5)]
@@ -106,12 +109,11 @@ for(l in 1:length(ftw)){
   #  print(AICPropTable)
   #}
   
-  propCorrect[l]<-sum(AICPropTable$CorrectN)/reps
-  print(propCorrect)
+  AICPropCorrect[l]<-sum(AICPropTable$Correct)/reps
+  BICPropCorrect[l]<-sum(BICPropTable$Correct)/reps
+  print(AICPropCorrect)
+  print(BICPropCorrect)
 }
 
-<<<<<<< HEAD
-
-=======
-propCorrect
->>>>>>> origin/master
+print(AICPropCorrect)
+print(BICPropCorrect)
