@@ -110,4 +110,8 @@ for(l in 1:length(ftw)){
   print(propCorrect)
 }
 
+<<<<<<< HEAD
 
+=======
+propCorrect
+>>>>>>> origin/master
