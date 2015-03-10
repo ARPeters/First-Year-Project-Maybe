@@ -6,8 +6,8 @@ library(PermAlgo)
 
 
 #ftw<-c(0, 0.01, 0.35, 0.7)
-#ftw<-c(1:70)/100
-ftw<-c(0:20)/5
+ftw<-c(1:70)/100
+#ftw<-c(0:20)/5
 
 AICPropCorrect<-vector(length=length(ftw))
 AICPropWC<-vector(length=length(ftw))
@@ -26,8 +26,7 @@ for(l in 1:length(ftw)){
   betas<-c(0.7, 0.7, 0.1, 0.1, ftw[l], ftw[l], 0, 0, 0, 0, 0, 0)
   
   #Creating a table of AICs and BIC values
-  reps<-50
-  #reps<-4
+  reps<-10
   
   fitTable<-data.frame(matrix(ncol=6, nrow=reps, ))
   colnames(fitTable)<-c("AICH", "BICH", "AICC","BICC", "AICLog","BICLog")
@@ -35,7 +34,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=1000
+    n=500
     m=365
     
     xmat<-matrix(nrow=n*m, ncol=13)
@@ -109,14 +108,33 @@ for(l in 1:length(ftw)){
     BICPropTable<-fitTable[,c(2,4,6)]
     
     
-    AICPropTable$WAICH<-ifelse(AICPropTable[i,1]==min(AICPropTable[i,1:3]),1,0)
-    AICPropTable$WAICC<-ifelse(AICPropTable[i,2]==min(AICPropTable[i,1:3]),1,0)
-    AICPropTable$CAICLog<-ifelse(AICPropTable[i,3]==min(AICPropTable[i,1:3]),1,0)
+    #AICPropTable$WAICH<-c(0)
+    #AICPropTable$WAICH[i]<-ifelse(AICPropTable[i,1]==min(AICPropTable[i,1:3]),1,0)
     
-    BICPropTable$WBICH<-ifelse(BICPropTable[i,1]==min(BICPropTable[i,1:3]),1,0)
-    BICPropTable$WBICC<-ifelse(BICPropTable[i,2]==min(BICPropTable[i,1:3]),1,0)
-    BICPropTable$CBICLog<-ifelse(BICPropTable[i,3]==min(BICPropTable[i,1:3]),1,0)
+    #AICPropTable$WAICC<-c(0)
+    #AICPropTable$WAICC[i]<-ifelse(AICPropTable[i,2]==min(AICPropTable[i,1:3]),1,0)
     
+    #AICPropTable$CAICLog<-c(0)
+    #AICPropTable$CAICLog[i]<-ifelse(AICPropTable[i,3]==min(AICPropTable[i,1:3]),1,0)
+    
+    #BICPropTable$WBICH<-c(0)
+    #BICPropTable$WBICH[i]<-ifelse(BICPropTable[i,1]==min(BICPropTable[i,1:3]),1,0)
+    
+    #BICPropTable$WBICC<-c(0)
+    #BICPropTable$WBICC[i]<-ifelse(BICPropTable[i,2]==min(BICPropTable[i,1:3]),1,0)
+    
+    #BICPropTable$CBICLog<-c(0)
+    #BICPropTable$CBICLog[i]<-ifelse(BICPropTable[i,3]==min(BICPropTable[i,1:3]),1,0)
+    
+  }
+  
+  for(m in 1:length(AICPropTable[,1])){
+    AICPropTable$WAICH[m]<-ifelse(AICPropTable[m,1]==min(AICPropTable[m,1:3]),1,0)
+    AICPropTable$WAICC[m]<-ifelse(AICPropTable[m,2]==min(AICPropTable[m,1:3]),1,0)
+    AICPropTable$CAICLog[m]<-ifelse(AICPropTable[m,3]==min(AICPropTable[m,1:3]),1,0)
+    BICPropTable$WBICH[m]<-ifelse(BICPropTable[m,1]==min(BICPropTable[m,1:3]),1,0)
+    BICPropTable$WBICC[m]<-ifelse(BICPropTable[m,2]==min(BICPropTable[m,1:3]),1,0)
+    BICPropTable$CBICLog[m]<-ifelse(BICPropTable[m,3]==min(BICPropTable[m,1:3]),1,0)
   }
   
   print(AICPropTable)
@@ -133,7 +151,7 @@ for(l in 1:length(ftw)){
   AICPropWC[l]<-sum(AICPropTable$WAICC)/reps
   AICPropCorrect[l]<-sum(AICPropTable$CAICLog)/reps
   
-  BICPropWH[l]<-sum(BICPropTable$WAICH)/reps
+  BICPropWH[l]<-sum(BICPropTable$WBICH)/reps
   BICPropWC[l]<-sum(BICPropTable$WBICC)/reps
   BICPropCorrect[l]<-sum(BICPropTable$CBICLog)/reps
   
@@ -153,8 +171,7 @@ for(l in 1:length(ftw)){
   print(c("Proportion of times BIC selected Control model across weights"))
   print(BICPropWC)
   
-  
   print(c("Proportion of times BIC selected (correct) Log model across weights"))
-  print(BICPropCorrect)
-  
+  print(BICPropCorrect)  
 }
+
