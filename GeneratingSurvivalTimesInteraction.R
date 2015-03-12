@@ -5,19 +5,20 @@ library(foreign)
 library(PermAlgo)
 
 
-#ftw<-c(0, 0.01, 0.35, 0.7)
-ftw<-c(1:70)/100
+ftw<-c(0, 0.01, 0.35, 0.7, 1)
+#ftw<-c(1:70)/100
 #ftw<-c(0:20)/5
+#ftw<-c(0:140)/100
 
-AICPropCorrect<-vector(length=length(ftw))
+AICPropWL<-vector(length=length(ftw))
 AICPropWC<-vector(length=length(ftw))
 AICPropWH<-vector(length=length(ftw))
-AICPropWI<-vector(length=length(ftw))
+AICPropCI<-vector(length=length(ftw))
 
-BICPropCorrect<-vector(length=length(ftw))
+BICPropWL<-vector(length=length(ftw))
 BICPropWC<-vector(length=length(ftw))
 BICPropWH<-vector(length=length(ftw))
-BICPropWI<-vector(length=length(ftw))
+BICPropCI<-vector(length=length(ftw))
 
 #For: weight of a specific time function (heaviside, the last one)
 for(l in 1:length(ftw)){
@@ -69,27 +70,27 @@ for(l in 1:length(ftw)){
     }
     
     dsMaster<-as.data.frame(xmat)
-    head(dsMaster)
+    
     colnames(dsMaster)<-c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "intForFt", "logtStrong1", "logtStrong2", "t2Strong1", "t2Strong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H")
     
     #Strong and Weak variables, plust two heaviside function variables
-    dsLog<-as.matrix(dsMaster[,c(1:6, 8:15)])
+    dsInt<-as.matrix(dsMaster[,c(1:6, 8:15)])
     eventTimesMaybe<-runif(n, 1, m)
     
-    dataLog<-permalgorithm(n, m, Xmat=dsLog, XmatNames=c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "logtStrong1", "logtStrong2", "t2Strong1", "t2Strong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H"), eventRandom=eventTimesMaybe, betas=betas)
+    dataInt<-permalgorithm(n, m, Xmat=dsInt, XmatNames=c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "logtStrong1", "logtStrong2", "t2Strong1", "t2Strong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H"), eventRandom=eventTimesMaybe, betas=betas)
 
-    attach(dataLog)
-    survobjectLog<-Surv(time=Start, time2=Stop, Event==1)
+    attach(dataInt)
+    survobjectInt<-Surv(time=Start, time2=Stop, Event==1)
     
-    testControl<-coxph(survobjectLog ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3, data=dataLog, ties="breslow")
+    testControl<-coxph(survobjectInt ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3, data=dataInt, ties="breslow")
     
-    testH<-coxph(survobjectLog ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3 + Strong1H + Strong2H, data=dataLog, ties="breslow")
+    testH<-coxph(survobjectInt ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3 + Strong1H + Strong2H, data=dataInt, ties="breslow")
     
-    testInt<-coxph(survobjectLog ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3 + Strong1Weak1 + Strong2Weak2, data=dataLog, ties="breslow")
+    testInt<-coxph(survobjectInt ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3 + Strong1Weak1 + Strong2Weak2, data=dataInt, ties="breslow")
     
-    testLog<-coxph(survobjectLog ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3 + logtStrong1 + logtStrong2, data=dataLog, ties="breslow")
+    testLog<-coxph(survobjectInt ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3 + logtStrong1 + logtStrong2, data=dataInt, ties="breslow")
     
-    detach(dataLog)
+    detach(dataInt)
     
     AICC<-(-2*testControl$loglik[2])+(2*(length(testControl$coefficients)))
     BICC<-(-2*testControl$loglik[2])+(log(n)*(length(testControl$coefficients)))
@@ -97,8 +98,8 @@ for(l in 1:length(ftw)){
     AICH<-(-2*testH$loglik[2])+(2*(length(testH$coefficients)))
     BICH<-(-2*testH$loglik[2])+(log(n)*(length(testH$coefficients)))
     
-    AICI<-(-2*testControl$loglik[2])+(2*(length(testInt$coefficients)))
-    BICI<-(-2*testControl$loglik[2])+(log(n)*(length(testInt$coefficients)))
+    AICI<-(-2*testInt$loglik[2])+(2*(length(testInt$coefficients)))
+    BICI<-(-2*testInt$loglik[2])+(log(n)*(length(testInt$coefficients)))
     
     AICLog<-(-2*testLog$loglik[2])+(2*(length(testLog$coefficients)))
     BICLog<-(-2*testLog$loglik[2])+(log(n)*(length(testLog$coefficients)))
@@ -138,7 +139,7 @@ for(l in 1:length(ftw)){
   
   BICPropWC[l]<-sum(BICPropTable$WBICC)/reps
   BICPropWH[l]<-sum(BICPropTable$WBICH)/reps
-  BICPropCorrect[l]<-sum(BICPropTable$CBICI)/reps
+  BICPropCI[l]<-sum(BICPropTable$CBICI)/reps
   BICPropWL[l]<-sum(BICPropTable$WBICLog)/reps
   
   print(c("Proportion of times AIC selected no-time model across weights."))
@@ -148,7 +149,7 @@ for(l in 1:length(ftw)){
   print(AICPropWH)
   
   print(c("Proportion of times AIC selected (correct) Interaction model across weights"))
-  print(AICPropCorrect)
+  print(AICPropCI)
   
   print(c("Proportion of times AIC selected Log model across weights"))
   print(AICPropWL)
@@ -160,14 +161,15 @@ for(l in 1:length(ftw)){
   print(BICPropWH)
   
   print(c("Proportion of times BIC selected (correct) Interaction model across weights"))
-  print(BICPropCorrect)
+  print(BICPropCI)
   
   print(c("Proportion of times BIC selected Log model across weights"))
   print(BICPropWL)  
 }
 
-GraphVectorAIC<-cbind(ftw, AICPropCorrect)
+GraphVectorAIC<-cbind(ftw, AICPropCI)
 plot(GraphVectorAIC)
 
-GraphVectorBIC<-cbind(ftw, BICPropCorrect)
+GraphVectorBIC<-cbind(ftw, BICPropCI)
 plot(GraphVectorBIC)
+

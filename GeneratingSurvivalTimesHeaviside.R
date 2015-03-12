@@ -145,7 +145,6 @@ for(l in 1:length(ftw)){
   print(c("Proportion of times AIC selected Control model across weights"))
   print(AICPropWC)
 
-  
   print(c("Proportion of times AIC selected Log model across weights"))
   print(AICPropWLog)
   
@@ -154,7 +153,6 @@ for(l in 1:length(ftw)){
   
   print(c("Proportion of times BIC selected Control model across weights"))
   print(BICPropWC)
-  
   
   print(c("Proportion of times BIC selected Log model across weights"))
   print(BICPropWLog)
