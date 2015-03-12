@@ -6,8 +6,8 @@ library(PermAlgo)
 
 
 #ftw<-c(0, 0.01, 0.35, 0.7)
-#ftw<-c(1:70)/100
-ftw<-c(0:20)/5
+ftw<-c(1:70)/100
+#ftw<-c(0:20)/5
 
 AICPropCorrect<-vector(length=length(ftw))
 AICPropWC<-vector(length=length(ftw))
@@ -166,3 +166,8 @@ for(l in 1:length(ftw)){
   print(BICPropCorrect)  
 }
 
+GraphVectorAIC<-cbind(ftw, AICPropCorrect)
+plot(GraphVectorAIC)
+
+GraphVectorBIC<-cbind(ftw, BICPropCorrect)
+plot(GraphVectorBIC)
