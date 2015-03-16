@@ -5,8 +5,8 @@ library(foreign)
 library(PermAlgo)
 
 
-ftw<-c(0, 0.01, 0.35, 0.7, 1)
-#ftw<-c(1:70)/100
+#ftw<-c(0, 0.01, 0.35, 0.7, 1)
+ftw<-c(1:70)/100
 #ftw<-c(0:20)/5
 #ftw<-c(0:140)/100
 
@@ -27,7 +27,7 @@ for(l in 1:length(ftw)){
   betas<-c(0.7, 0.7, 0.7, 0.1, 0.1, 0.1, 0, 0, 0, 0, ftw[l], ftw[l], 0, 0)
   
   #Creating a table of AICs and BIC values
-  reps<-10
+  reps<-30
   
   fitTable<-data.frame(matrix(ncol=8, nrow=reps, ))
   colnames(fitTable)<-c("AICC", "BICC", "AICH", "BICH", "AICI","BICI", "AICLog","BICLog")
@@ -35,7 +35,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=500
+    n=1000
     m=365
     
     xmat<-matrix(nrow=n*m, ncol=15)
@@ -173,3 +173,6 @@ plot(GraphVectorAIC)
 GraphVectorBIC<-cbind(ftw, BICPropCI)
 plot(GraphVectorBIC)
 
+SimInt313<-rbind(AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL)
+
+write.csv(SimInt313, file="SimInt313.csv", na=".")

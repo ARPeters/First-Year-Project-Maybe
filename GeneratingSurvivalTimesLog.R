@@ -19,14 +19,14 @@ BICPropWC<-vector(length=length(ftw))
 BICPropWH<-vector(length=length(ftw))
 BICPropWI<-vector(length=length(ftw))
 
-#For: weight of a specific time function (heaviside, the last one)
+#For: weight of a specific time function (log)
 for(l in 1:length(ftw)){
   #Declaring Betas: first, we are looking at the heaviside function, so the last two time-dependent 
   #variables are given betas, all else are given 0 weight. 
   betas<-c(0.7, 0.7, 0.7, 0.1, 0.1, 0.1, ftw[l], ftw[l], 0, 0, 0, 0, 0, 0)
   
   #Creating a table of AICs and BIC values
-  reps<-10
+  reps<-30
   
   fitTable<-data.frame(matrix(ncol=8, nrow=reps, ))
   colnames(fitTable)<-c("AICC", "BICC", "AICH", "BICH", "AICI","BICI", "AICLog","BICLog")
@@ -34,7 +34,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=500
+    n=1000
     m=365
     
     xmat<-matrix(nrow=n*m, ncol=15)
@@ -166,8 +166,15 @@ for(l in 1:length(ftw)){
   print(BICPropCorrect)  
 }
 
+
+
 GraphVectorAIC<-cbind(ftw, AICPropCorrect)
 plot(GraphVectorAIC)
 
 GraphVectorBIC<-cbind(ftw, BICPropCorrect)
 plot(GraphVectorBIC)
+
+SimLog1000N316<-rbind(AICPropWC, AICPropWH, AICPropWI, AICPropCorrect, BICPropWC, BICPropWH, BICPropWI, BICPropCorrect)
+
+write.csv(SimLog1000N316, file="SimLog1000N316.csv", na=".")
+
