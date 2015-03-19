@@ -173,6 +173,7 @@ plot(GraphVectorAIC)
 GraphVectorBIC<-cbind(ftw, BICPropCI)
 plot(GraphVectorBIC)
 
-SimInt313<-rbind(AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL)
 
-write.csv(SimInt313, file="SimInt313.csv", na=".")
+#Run these when sim is completed. 
+SimInt1000N316<-rbind(AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL)
+write.csv(SimInt1000N316, file="SimInt1000N316.csv", na=".")
