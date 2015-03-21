@@ -63,7 +63,6 @@ testLog<-coxph(survobjectH ~ Strong1 + Strong2 + Weak1 + Weak2 + logtStrong1 + l
 
 testControlActual<-coxph(survobjectH ~ Strong1 + Strong2 + Weak1 + Weak2, data=dataH)
 
-
 #Setting up the cvFolds
 cvF<-cvFolds(n=length(dataH$Event), K=10)
 cvTestH<-cvTool(call=testH, y=dataH$Event, folds=cvF)
@@ -77,8 +76,6 @@ cvTestH
 cvTestControl
 cvTestLog
 cvTestControlActual
-
-cvErrorH
 
 ##Testing c statistic
 

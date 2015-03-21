@@ -1,24 +1,37 @@
 rm(list = ls(all.names = TRUE))
+library(cvTools)
 library(survsim)
 library(survival)
 library(foreign)
 library(PermAlgo)
+library(ROCR)
 
+ftw<-c(0, 0.01, 0.35, 0.7)
+#ftw<-c(1:100)/100
 
-#ftw<-c(0, 0.01, 0.35, 0.7, 1)
-ftw<-c(1:70)/100
-#ftw<-c(0:20)/5
-#ftw<-c(0:140)/100
+cvPropWL<-vector(length=length(ftw))
+cvPropWC<-vector(length=length(ftw))
+cvPropWH<-vector(length=length(ftw))
+cvPropCI<-vector(length=length(ftw))
+cvPropWT<-vector(length=length(ftw))
+
+AUCPropWL<-vector(length=length(ftw))
+AUCPropWC<-vector(length=length(ftw))
+AUCPropWH<-vector(length=length(ftw))
+AUCPropCI<-vector(length=length(ftw))
+AUCPropWT<-vector(length=length(ftw))
 
 AICPropWL<-vector(length=length(ftw))
 AICPropWC<-vector(length=length(ftw))
 AICPropWH<-vector(length=length(ftw))
 AICPropCI<-vector(length=length(ftw))
+AICPropWT<-vector(length=length(ftw))
 
 BICPropWL<-vector(length=length(ftw))
 BICPropWC<-vector(length=length(ftw))
 BICPropWH<-vector(length=length(ftw))
 BICPropCI<-vector(length=length(ftw))
+BICPropWT<-vector(length=length(ftw))
 
 #For: weight of a specific time function (heaviside, the last one)
 for(l in 1:length(ftw)){
@@ -27,15 +40,15 @@ for(l in 1:length(ftw)){
   betas<-c(0.7, 0.7, 0.7, 0.1, 0.1, 0.1, 0, 0, 0, 0, ftw[l], ftw[l], 0, 0)
   
   #Creating a table of AICs and BIC values
-  reps<-30
+  reps<-5
   
-  fitTable<-data.frame(matrix(ncol=8, nrow=reps, ))
-  colnames(fitTable)<-c("AICC", "BICC", "AICH", "BICH", "AICI","BICI", "AICLog","BICLog")
+  fitTable<-data.frame(matrix(ncol=20, nrow=reps, ))
+  colnames(fitTable)<-c("AICC",  "AICH", "AICI", "AICLog", "AICT", "BICC","BICH", "BICI","BICLog", "BICT" , "cvC", "cvH", "cvI", "cvLog", "cvT", "AUCC", "AUCH", "AUCI", "AUCLog", "AUCT")
   
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=1000
+    n=500
     m=365
     
     xmat<-matrix(nrow=n*m, ncol=15)
@@ -55,9 +68,9 @@ for(l in 1:length(ftw)){
     xmat[,8]<-log(xmat[,7])*xmat[,1]
     xmat[,9]<-log(xmat[,7])*xmat[,2]
     
-    #10th and 11th columns are going to represent time squared * Strong1 and Strong2, respectively
-    xmat[,10]<-xmat[,7]*xmat[,7]*xmat[,1]
-    xmat[,11]<-xmat[,7]*xmat[,7]*xmat[,2]
+    #10th and 11th columns are going to represent time * Strong1 and Strong2, respectively
+    xmat[,10]<-xmat[,7]*xmat[,1]
+    xmat[,11]<-xmat[,7]*xmat[,2]
     
     #12th and 13th columns are going to represent interactions between Strong1*Weak1 and Strong2*Weak2
     xmat[,12]<-xmat[,1]*xmat[,4]
@@ -70,17 +83,18 @@ for(l in 1:length(ftw)){
     }
     
     dsMaster<-as.data.frame(xmat)
-    
-    colnames(dsMaster)<-c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "intForFt", "logtStrong1", "logtStrong2", "t2Strong1", "t2Strong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H")
+    colnames(dsMaster)<-c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "intForFt", "logtStrong1", "logtStrong2", "tStrong1", "tStrong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H")
     
     #Strong and Weak variables, plust two heaviside function variables
     dsInt<-as.matrix(dsMaster[,c(1:6, 8:15)])
     eventTimesMaybe<-runif(n, 1, m)
     
-    dataInt<-permalgorithm(n, m, Xmat=dsInt, XmatNames=c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "logtStrong1", "logtStrong2", "t2Strong1", "t2Strong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H"), eventRandom=eventTimesMaybe, betas=betas)
+    dataInt<-permalgorithm(n, m, Xmat=dsInt, XmatNames=c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "logtStrong1", "logtStrong2", "tStrong1", "tStrong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H"), eventRandom=eventTimesMaybe, betas=betas)
 
     attach(dataInt)
     survobjectInt<-Surv(time=Start, time2=Stop, Event==1)
+   
+    #Creating the cox models for each set of variables
     
     testControl<-coxph(survobjectInt ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3, data=dataInt, ties="breslow")
     
@@ -90,8 +104,39 @@ for(l in 1:length(ftw)){
     
     testLog<-coxph(survobjectInt ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3 + logtStrong1 + logtStrong2, data=dataInt, ties="breslow")
     
-    detach(dataInt)
+    testT<-coxph(survobjectInt ~ Strong1 + Strong2 + Strong3 + Weak1 + Weak2 + Weak3 + tStrong1 + tStrong2, data=dataInt, ties="breslow")
     
+    #Getting cv error for each model
+    cvF<-cvFolds(n=length(dataInt$Event), K=10)
+    cvTestH<-cvTool(call=testH, y=dataInt$Event, folds=cvF)
+    cvTestI<-cvTool(call=testInt, y=dataInt$Event, folds=cvF)
+    cvTestLog<-cvTool(call=testLog, y=dataInt$Event, folds=cvF)
+    cvTestC<-cvTool(call=testControl, y=dataInt$Event, folds=cvF)
+    cvTestT<-cvTool(call=testT, y=dataInt$Event, folds=cvF)
+    
+    predTestControl<-prediction(testControl$linear.predictors, dataInt$Event)
+    perfTestControl<-performance(predTestControl, measure="auc")
+    AUCC<-as.numeric(perfTestControl@y.values)
+    
+    predTestH<-prediction(testH$linear.predictors, dataInt$Event)
+    perfTestH<-performance(predTestH, measure="auc")
+    AUCH<-as.numeric(perfTestH@y.values)
+    
+    predTestI<-prediction(testInt$linear.predictors, dataInt$Event)
+    perfTestI<-performance(predTestI, measure="auc")
+    AUCI<-as.numeric(perfTestI@y.values)
+    
+    predTestLog<-prediction(testLog$linear.predictors, dataInt$Event)
+    perfTestLog<-performance(predTestLog, measure="auc")
+    AUCLog<-as.numeric(perfTestLog@y.values)
+    
+    predTestT<-prediction(testT$linear.predictors, dataInt$Event)
+    perfTestT<-performance(predTestT, measure="auc")
+    AUCT<-as.numeric(perfTestT@y.values)
+    
+    detach(dataInt)
+ 
+    #Getting AIC and BIC for each model
     AICC<-(-2*testControl$loglik[2])+(2*(length(testControl$coefficients)))
     BICC<-(-2*testControl$loglik[2])+(log(n)*(length(testControl$coefficients)))
     
@@ -104,43 +149,92 @@ for(l in 1:length(ftw)){
     AICLog<-(-2*testLog$loglik[2])+(2*(length(testLog$coefficients)))
     BICLog<-(-2*testLog$loglik[2])+(log(n)*(length(testLog$coefficients)))
     
-    fitTable[i,1]<-AICC
-    fitTable[i,2]<-BICC
-    fitTable[i,3]<-AICH
-    fitTable[i,4]<-BICH
-    fitTable[i,5]<-AICI
-    fitTable[i,6]<-BICI
-    fitTable[i,7]<-AICLog
-    fitTable[i,8]<-BICLog
+    AICT<-(-2*testT$loglik[2])+(2*(length(testT$coefficients)))
+    BICT<-(-2*testT$loglik[2])+(log(n)*(length(testT$coefficients)))
     
-    AICPropTable<-fitTable[,c(1,3,5,7)]
-    BICPropTable<-fitTable[,c(2,4,6,8)]
+    fitTable[i,1]<-AICC
+    fitTable[i,2]<-AICH
+    fitTable[i,3]<-AICI
+    fitTable[i,4]<-AICLog
+    fitTable[i,5]<-AICT
+    fitTable[i,6]<-BICC
+    fitTable[i,7]<-BICH
+    fitTable[i,8]<-BICI
+    fitTable[i,9]<-BICLog
+    fitTable[i,10]<-BICT
+    fitTable[i,11]<-cvTestC
+    fitTable[i,12]<-cvTestH
+    fitTable[i,13]<-cvTestI
+    fitTable[i,14]<-cvTestLog
+    fitTable[i,15]<-cvTestT
+    fitTable[i,16]<-AUCC
+    fitTable[i,17]<-AUCH
+    fitTable[i,18]<-AUCI
+    fitTable[i,19]<-AUCLog
+    fitTable[i,20]<-AUCT
+    
+    AICPropTable<-fitTable[,c(1:5)]
+    BICPropTable<-fitTable[,c(6:10)]
+    cvPropTable<-fitTable[,c(11:15)]
+    AUCPropTable<-fitTable[,c(16:20)]
   }
   
   for(m in 1:length(AICPropTable[,1])){
     
-    AICPropTable$WAICC[m]<-ifelse(AICPropTable[m,1]==min(AICPropTable[m,1:4]),1,0)
-    AICPropTable$WAICH[m]<-ifelse(AICPropTable[m,2]==min(AICPropTable[m,1:4]),1,0)
-    AICPropTable$CAICI[m]<-ifelse(AICPropTable[m,3]==min(AICPropTable[m,1:4]),1,0)
-    AICPropTable$WAICLog[m]<-ifelse(AICPropTable[m,4]==min(AICPropTable[m,1:4]),1,0)
-    BICPropTable$WBICC[m]<-ifelse(BICPropTable[m,1]==min(BICPropTable[m,1:4]),1,0)
-    BICPropTable$WBICH[m]<-ifelse(BICPropTable[m,2]==min(BICPropTable[m,1:4]),1,0)
-    BICPropTable$CBICI[m]<-ifelse(BICPropTable[m,3]==min(BICPropTable[m,1:4]),1,0)
-    BICPropTable$WBICLog[m]<-ifelse(BICPropTable[m,4]==min(BICPropTable[m,1:4]),1,0)
+    AICPropTable$WAICC[m]<-ifelse(AICPropTable[m,1]==min(AICPropTable[m,1:5]),1,0)
+    AICPropTable$WAICH[m]<-ifelse(AICPropTable[m,2]==min(AICPropTable[m,1:5]),1,0)
+    AICPropTable$CAICI[m]<-ifelse(AICPropTable[m,3]==min(AICPropTable[m,1:5]),1,0)
+    AICPropTable$WAICLog[m]<-ifelse(AICPropTable[m,4]==min(AICPropTable[m,1:5]),1,0)
+    AICPropTable$WAICT[m]<-ifelse(AICPropTable[m,5]==min(AICPropTable[m,1:5]),1,0)
+    
+    BICPropTable$WBICC[m]<-ifelse(BICPropTable[m,1]==min(BICPropTable[m,1:5]),1,0)
+    BICPropTable$WBICH[m]<-ifelse(BICPropTable[m,2]==min(BICPropTable[m,1:5]),1,0)
+    BICPropTable$CBICI[m]<-ifelse(BICPropTable[m,3]==min(BICPropTable[m,1:5]),1,0)
+    BICPropTable$WBICLog[m]<-ifelse(BICPropTable[m,4]==min(BICPropTable[m,1:5]),1,0)
+    BICPropTable$WBICT[m]<-ifelse(BICPropTable[m,5]==min(BICPropTable[m,1:5]),1,0)
+    
+    cvPropTable$WcvC[m]<-ifelse(cvPropTable[m,1]==min(cvPropTable[m,1:5]),1,0)
+    cvPropTable$WcvH[m]<-ifelse(cvPropTable[m,2]==min(cvPropTable[m,1:5]),1,0)
+    cvPropTable$CcvI[m]<-ifelse(cvPropTable[m,3]==min(cvPropTable[m,1:5]),1,0)
+    cvPropTable$WcvLog[m]<-ifelse(cvPropTable[m,4]==min(cvPropTable[m,1:5]),1,0)
+    cvPropTable$WcvT[m]<-ifelse(cvPropTable[m,5]==min(cvPropTable[m,1:5]),1,0)
+    
+    AUCPropTable$WAUCC[m]<-ifelse(AUCPropTable[m,1]==max(AUCPropTable[m,1:5]),1,0)
+    AUCPropTable$WAUCH[m]<-ifelse(AUCPropTable[m,2]==max(AUCPropTable[m,1:5]),1,0)
+    AUCPropTable$CAUCI[m]<-ifelse(AUCPropTable[m,3]==max(AUCPropTable[m,1:5]),1,0)
+    AUCPropTable$WAUCLog[m]<-ifelse(AUCPropTable[m,4]==max(AUCPropTable[m,1:5]),1,0)
+    AUCPropTable$WAUCT[m]<-ifelse(AUCPropTable[m,5]==max(AUCPropTable[m,1:5]),1,0)
+    
   }
   
   print(AICPropTable)
   print(BICPropTable)
+  print(cvPropTable)
+  print(AUCPropTable)
   
-  AICPropWC[l]<-as.numeric(sum(AICPropTable$WAICC)/reps)
-  AICPropWH[l]<-as.numeric(sum(AICPropTable$WAICH)/reps)
+  AICPropWC[l]<-sum(AICPropTable$WAICC)/reps
+  AICPropWH[l]<-sum(AICPropTable$WAICH)/reps
   AICPropCI[l]<-sum(AICPropTable$CAICI)/reps
   AICPropWL[l]<-sum(AICPropTable$WAICLog)/reps
+  AICPropWT[l]<-sum(AICPropTable$WAICT)/reps
   
   BICPropWC[l]<-sum(BICPropTable$WBICC)/reps
   BICPropWH[l]<-sum(BICPropTable$WBICH)/reps
   BICPropCI[l]<-sum(BICPropTable$CBICI)/reps
   BICPropWL[l]<-sum(BICPropTable$WBICLog)/reps
+  BICPropWT[l]<-sum(BICPropTable$WBICT)/reps
+  
+  cvPropWC[l]<-sum(cvPropTable$WcvC)/reps
+  cvPropWH[l]<-sum(cvPropTable$WcvH)/reps
+  cvPropCI[l]<-sum(cvPropTable$CcvI)/reps
+  cvPropWL[l]<-sum(cvPropTable$WcvLog)/reps
+  cvPropWT[l]<-sum(cvPropTable$WcvT)/reps
+  
+  AUCPropWC[l]<-sum(AUCPropTable$WAUCC)/reps
+  AUCPropWH[l]<-sum(AUCPropTable$WAUCH)/reps
+  AUCPropCI[l]<-sum(AUCPropTable$CAUCI)/reps
+  AUCPropWL[l]<-sum(AUCPropTable$WAUCLog)/reps  
+  AUCPropWT[l]<-sum(AUCPropTable$WAUCT)/reps
   
   print(c("Proportion of times AIC selected no-time model across weights."))
   print(AICPropWC)
@@ -154,6 +248,9 @@ for(l in 1:length(ftw)){
   print(c("Proportion of times AIC selected Log model across weights"))
   print(AICPropWL)
   
+  print(c("Proportion of times AIC selected time model across weights"))
+  print(AICPropWT)
+  
   print(c("Proportion of times BIC selected no-time model across weights."))
   print(BICPropWC)
   
@@ -165,6 +262,39 @@ for(l in 1:length(ftw)){
   
   print(c("Proportion of times BIC selected Log model across weights"))
   print(BICPropWL)  
+  
+  print(c("Proportion of times BIC selected time model across weights"))
+  print(BICPropWT)  
+  
+  print(c("Proportion of times cv selected no-time model across weights."))
+  print(cvPropWC)
+  
+  print(c("Proportion of times cv selected heaviside model across weights."))
+  print(cvPropWH)
+  
+  print(c("Proportion of times cv selected (correct) Interaction model across weights"))
+  print(cvPropCI)
+  
+  print(c("Proportion of times cv selected Log model across weights"))
+  print(cvPropWL)  
+  
+  print(c("Proportion of times cv selected time model across weights"))
+  print(cvPropWT)
+  
+  print(c("Proportion of times AUC selected no-time model across weights."))
+  print(AUCPropWC)
+  
+  print(c("Proportion of times AUC selected heaviside model across weights."))
+  print(AUCPropWH)
+  
+  print(c("Proportion of times AUC selected (correct)Interaction model across weights"))
+  print(AUCPropCI)
+  
+  print(c("Proportion of times AUC selected Log model across weights"))
+  print(AUCPropWL)  
+
+  print(c("Proportion of times AUC selected time model across weights"))
+  print(AUCPropWT)  
 }
 
 GraphVectorAIC<-cbind(ftw, AICPropCI)
@@ -173,7 +303,12 @@ plot(GraphVectorAIC)
 GraphVectorBIC<-cbind(ftw, BICPropCI)
 plot(GraphVectorBIC)
 
+GraphVectorcv<-cbind(ftw, cvPropCorrect)
+plot(GraphVectorcv)
+
+GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
+plot(GraphVectorAUC)
 
 #Run these when sim is completed. 
-SimInt1000N316<-rbind(AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL)
-write.csv(SimInt1000N316, file="SimInt1000N316.csv", na=".")
+SimInt500N320<-rbind(ftw, AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL, cvPropWC, cvPropWH, cvPropCI, cvPropWL, AUCPropWC, AUCPropWH, AUCPropCI, AUCPropWL)
+write.csv(SimInt500N320, file="SimInt500N320.csv", na=".")
