@@ -6,8 +6,9 @@ library(foreign)
 library(PermAlgo)
 library(ROCR)
 
+ftw<-c(0.7)
 #ftw<-c(0, 0.01, 0.35, 0.7)
-ftw<-c(1:100)/100
+#ftw<-c(1:100)/100
 
 cvPropCorrect<-vector(length=length(ftw))
 cvPropWC<-vector(length=length(ftw))
@@ -40,7 +41,7 @@ for(l in 1:length(ftw)){
   betas<-c(0.7, 0.7, 0.7, 0.1, 0.1, 0.1, ftw[l], ftw[l], 0, 0, 0, 0, 0, 0)
   
   #Creating a table of AICs and BIC values
-  reps<-30
+  reps<-5
   
   fitTable<-data.frame(matrix(ncol=20, nrow=reps, ))
   colnames(fitTable)<-c("AICC",  "AICH", "AICI", "AICLog", "AICT", "BICC","BICH", "BICI","BICLog", "BICT" , "cvC", "cvH", "cvI", "cvLog", "cvT", "AUCC", "AUCH", "AUCI", "AUCLog", "AUCT")
@@ -49,7 +50,8 @@ for(l in 1:length(ftw)){
   for(i in 1:reps){
     
     n=1000
-    m=365
+    m=24
+    mhalf<-m/2
     
     xmat<-matrix(nrow=n*m, ncol=15)
     
@@ -69,8 +71,8 @@ for(l in 1:length(ftw)){
     xmat[,9]<-log(xmat[,7])*xmat[,2]
     
     #10th and 11th columns are going to represent time * Strong1 and Strong2, respectively
-    xmat[,10]<-xmat[,7]*xmat[,1]
-    xmat[,11]<-xmat[,7]*xmat[,2]
+    xmat[,10]<-(xmat[,7]/m)*xmat[,1]
+    xmat[,11]<-(xmat[,7]/m)*xmat[,2]
     
     #12th and 13th columns are going to represent interactions between Strong1*Weak1 and Strong2*Weak2
     xmat[,12]<-xmat[,1]*xmat[,4]
@@ -78,8 +80,8 @@ for(l in 1:length(ftw)){
     
     #14th and 15th columns are going to represent interactions between heaviside function and strong1/strong2 respectively
     for(j in 1:length(xmat[,7])){
-      xmat[j,14]<-ifelse(xmat[j,7]<=182, 0, xmat[j,1])  
-      xmat[j,15]<-ifelse(xmat[j,7]<=182, 0, xmat[j,2])
+      xmat[j,14]<-ifelse(xmat[j,7]<=mhalf, 0, xmat[j,1])  
+      xmat[j,15]<-ifelse(xmat[j,7]<=mhalf, 0, xmat[j,2])
     }
     
     dsMaster<-as.data.frame(xmat)
@@ -235,6 +237,8 @@ for(l in 1:length(ftw)){
   AUCPropWI[l]<-sum(AUCPropTable$WAUCI)/reps
   AUCPropCorrect[l]<-sum(AUCPropTable$CAUCLog)/reps
   AUCPropWT[l]<-sum(AUCPropTable$WAUCT)/reps
+  
+  print(testLog)
   
   print(c("Proportion of times AIC selected no-time model across weights."))
   print(AICPropWC)

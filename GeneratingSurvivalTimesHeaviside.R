@@ -6,8 +6,9 @@ library(foreign)
 library(PermAlgo)
 library(ROCR)
 
+ftw<-c(0.7)
 #ftw<-c(0, 0.01, 0.35, 0.7)
-ftw<-c(1:100)/100
+#ftw<-c(1:100)/100
 
 cvPropWL<-vector(length=length(ftw))
 cvPropWC<-vector(length=length(ftw))
@@ -49,7 +50,8 @@ for(l in 1:length(ftw)){
   for(i in 1:reps){
     
     n=1000
-    m=365
+    m=24
+    mhalf=m/2
     
     xmat<-matrix(nrow=n*m, ncol=15)
     
@@ -69,8 +71,8 @@ for(l in 1:length(ftw)){
     xmat[,9]<-log(xmat[,7])*xmat[,2]
     
     #10th and 11th columns are going to represent time * Strong1 and Strong2, respectively
-    xmat[,10]<-xmat[,7]*xmat[,1]
-    xmat[,11]<-xmat[,7]*xmat[,2]
+    xmat[,10]<-(xmat[,7]/m)*xmat[,1]
+    xmat[,11]<-(xmat[,7]/m)*xmat[,2]
     
     #12th and 13th columns are going to represent interactions between Strong1*Weak1 and Strong2*Weak2
     xmat[,12]<-xmat[,1]*xmat[,4]
@@ -78,8 +80,8 @@ for(l in 1:length(ftw)){
     
     #14th and 15th columns are going to represent interactions between heaviside function and strong1/strong2 respectively
     for(j in 1:length(xmat[,7])){
-      xmat[j,14]<-ifelse(xmat[j,7]<=182, 0, xmat[j,1])  
-      xmat[j,15]<-ifelse(xmat[j,7]<=182, 0, xmat[j,2])
+      xmat[j,14]<-ifelse(xmat[j,7]<=mhalf, 0, xmat[j,1])  
+      xmat[j,15]<-ifelse(xmat[j,7]<=mhalf, 0, xmat[j,2])
     }
     
     dsMaster<-as.data.frame(xmat)
@@ -236,14 +238,16 @@ for(l in 1:length(ftw)){
   AUCPropWL[l]<-sum(AUCPropTable$WAUCLog)/reps  
   AUCPropWT[l]<-sum(AUCPropTable$WAUCT)/reps
   
+  print(testH)
+  
   print(c("Proportion of times AIC selected no-time model across weights."))
   print(AICPropWC)
   
   print(c("Proportion of times AIC selected (correct) heaviside model across weights."))
-  print(AICPropWH)
+  print(AICPropCH)
   
   print(c("Proportion of times AIC selected Interaction model across weights"))
-  print(AICPropCI)
+  print(AICPropWI)
   
   print(c("Proportion of times AIC selected Log model across weights"))
   print(AICPropWL)
@@ -255,10 +259,10 @@ for(l in 1:length(ftw)){
   print(BICPropWC)
   
   print(c("Proportion of times BIC selected (correct) heaviside model across weights."))
-  print(BICPropWH)
+  print(BICPropCH)
   
   print(c("Proportion of times BIC selected Interaction model across weights"))
-  print(BICPropCI)
+  print(BICPropWI)
   
   print(c("Proportion of times BIC selected Log model across weights"))
   print(BICPropWL)  
@@ -270,10 +274,10 @@ for(l in 1:length(ftw)){
   print(cvPropWC)
   
   print(c("Proportion of times cv selected (correct) heaviside model across weights."))
-  print(cvPropWH)
+  print(cvPropCH)
   
   print(c("Proportion of times cv selected Interaction model across weights"))
-  print(cvPropCI)
+  print(cvPropWI)
   
   print(c("Proportion of times cv selected Log model across weights"))
   print(cvPropWL)  
@@ -285,10 +289,10 @@ for(l in 1:length(ftw)){
   print(AUCPropWC)
   
   print(c("Proportion of times AUC selected (correct) heaviside model across weights."))
-  print(AUCPropWH)
+  print(AUCPropCH)
   
   print(c("Proportion of times AUC selected Interaction model across weights"))
-  print(AUCPropCI)
+  print(AUCPropWI)
   
   print(c("Proportion of times AUC selected Log model across weights"))
   print(AUCPropWL)  
