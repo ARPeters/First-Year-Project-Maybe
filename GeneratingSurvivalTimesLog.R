@@ -311,6 +311,6 @@ GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
 plot(GraphVectorAUC)
 
 
-#SimLog500N320<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropCorrect, BICPropWC, BICPropWH, BICPropWI, BICPropCorrect, cvPropWC, cvPropWH, cvPropWI, cvPropCorrect, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropCorrect)
+SimLog1000N322<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropCorrect, BICPropWC, BICPropWH, BICPropWI, BICPropCorrect, cvPropWC, cvPropWH, cvPropWI, cvPropCorrect, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropCorrect)
 
-#write.csv(SimLog1000N316, file="SimLog1000N316.csv", na=".")
+write.csv(SimLog1000N322, file="SimLog1000N322.csv", na=".")

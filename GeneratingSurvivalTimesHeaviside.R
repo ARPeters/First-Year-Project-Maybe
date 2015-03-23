@@ -6,8 +6,8 @@ library(foreign)
 library(PermAlgo)
 library(ROCR)
 
-ftw<-c(0, 0.01, 0.35, 0.7)
-#ftw<-c(1:100)/100
+#ftw<-c(0, 0.01, 0.35, 0.7)
+ftw<-c(1:100)/100
 
 cvPropWL<-vector(length=length(ftw))
 cvPropWC<-vector(length=length(ftw))
@@ -40,7 +40,7 @@ for(l in 1:length(ftw)){
   betas<-c(0.7, 0.7, 0.7, 0.1, 0.1, 0.1, 0, 0, 0, 0, 0, 0, ftw[l], ftw[l])
   
   #Creating a table of AICs and BIC values
-  reps<-5
+  reps<-30
   
   fitTable<-data.frame(matrix(ncol=20, nrow=reps, ))
   colnames(fitTable)<-c("AICC",  "AICH", "AICI", "AICLog", "AICT", "BICC","BICH", "BICI","BICLog", "BICT" , "cvC", "cvH", "cvI", "cvLog", "cvT", "AUCC", "AUCH", "AUCI", "AUCLog", "AUCT")
@@ -48,7 +48,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=500
+    n=1000
     m=365
     
     xmat<-matrix(nrow=n*m, ncol=15)
@@ -92,7 +92,7 @@ for(l in 1:length(ftw)){
     dataH<-permalgorithm(n, m, Xmat=dsH, XmatNames=c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "logtStrong1", "logtStrong2", "tStrong1", "tStrong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H"), eventRandom=eventTimesMaybe, betas=betas)
     
     attach(dataH)
-    survobjectInt<-Surv(time=Start, time2=Stop, Event==1)
+    survobjectH<-Surv(time=Start, time2=Stop, Event==1)
     
     #Creating the cox models for each set of variables
     
@@ -310,5 +310,5 @@ GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
 plot(GraphVectorAUC)
 
 #Run these when sim is completed. 
-SimInt500N320<-rbind(ftw, AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL, cvPropWC, cvPropWH, cvPropCI, cvPropWL, AUCPropWC, AUCPropWH, AUCPropCI, AUCPropWL)
-write.csv(SimInt500N320, file="SimInt500N320.csv", na=".")
+#SimInt500N320<-rbind(ftw, AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL, cvPropWC, cvPropWH, cvPropCI, cvPropWL, AUCPropWC, AUCPropWH, AUCPropCI, AUCPropWL)
+#write.csv(SimInt500N320, file="SimInt500N320.csv", na=".")
