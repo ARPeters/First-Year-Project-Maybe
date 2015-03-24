@@ -301,18 +301,18 @@ for(l in 1:length(ftw)){
   print(AUCPropWT)  
 }
 
-GraphVectorAIC<-cbind(ftw, AICPropCI)
+GraphVectorAIC<-cbind(ftw, AICPropCH)
 plot(GraphVectorAIC)
 
-GraphVectorBIC<-cbind(ftw, BICPropCI)
+GraphVectorBIC<-cbind(ftw, BICPropCH)
 plot(GraphVectorBIC)
 
-GraphVectorcv<-cbind(ftw, cvPropCorrect)
+GraphVectorcv<-cbind(ftw, cvPropCH)
 plot(GraphVectorcv)
 
-GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
+GraphVectorAUC<-cbind(ftw, AUCPropCH)
 plot(GraphVectorAUC)
 
 #Run these when sim is completed. 
-#SimInt500N320<-rbind(ftw, AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL, cvPropWC, cvPropWH, cvPropCI, cvPropWL, AUCPropWC, AUCPropWH, AUCPropCI, AUCPropWL)
-#write.csv(SimInt500N320, file="SimInt500N320.csv", na=".")
+SimH1000N324TP<-rbind(ftw, AICPropWC, AICPropCH, AICPropWI, AICPropWL, BICPropWC, BICPropCH, BICPropWI, BICPropWL, cvPropWC, cvPropCH, cvPropWI, cvPropWL, AUCPropWC, AUCPropCH, AUCPropWI, AUCPropWL)
+write.csv(SimH1000N324TP, file="SimH1000N324TP.csv", na=".")
