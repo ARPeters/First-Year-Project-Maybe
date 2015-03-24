@@ -6,9 +6,9 @@ library(foreign)
 library(PermAlgo)
 library(ROCR)
 
-ftw<-c(0.7)
+#ftw<-c(0.7)
 #ftw<-c(0, 0.01, 0.35, 0.7)
-#ftw<-c(1:100)/100
+ftw<-c(1:100)/100
 
 cvPropWL<-vector(length=length(ftw))
 cvPropWC<-vector(length=length(ftw))
@@ -71,8 +71,8 @@ for(l in 1:length(ftw)){
     xmat[,9]<-log(xmat[,7])*xmat[,2]
     
     #10th and 11th columns are going to represent time * Strong1 and Strong2, respectively
-    xmat[,10]<-(xmat[,7]/m)*xmat[,1]
-    xmat[,11]<-(xmat[,7]/m)*xmat[,2]
+    xmat[,10]<-(xmat[,7])*xmat[,1]
+    xmat[,11]<-(xmat[,7])*xmat[,2]
     
     #12th and 13th columns are going to represent interactions between Strong1*Weak1 and Strong2*Weak2
     xmat[,12]<-xmat[,1]*xmat[,4]

@@ -318,3 +318,5 @@ plot(GraphVectorAUC)
 SimLog1000N322<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropCorrect, BICPropWC, BICPropWH, BICPropWI, BICPropCorrect, cvPropWC, cvPropWH, cvPropWI, cvPropCorrect, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropCorrect)
 
 write.csv(SimLog1000N322, file="SimLog1000N322.csv", na=".")
+#SimT1000N324Time<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropWL, AICPropCT, BICPropWC, BICPropWH, BICPropWI, BICPropWL, BICPropCT, cvPropWC, cvPropWH, cvPropWI, cvPropWL, cvPropCT, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropWL, AUCPropCT)
+#write.csv(SimT1000N324Time, file="SimT1000N324Time.csv", na=".")

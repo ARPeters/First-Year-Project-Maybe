@@ -6,9 +6,9 @@ library(foreign)
 library(PermAlgo)
 library(ROCR)
 
-ftw<-c(0.7)
+#ftw<-c(0.7)
 #ftw<-c(0, 0.01, 0.35, 0.7)
-#ftw<-c(1:100)/100
+ftw<-c(1:100)/100
 
 cvPropWL<-vector(length=length(ftw))
 cvPropWC<-vector(length=length(ftw))
@@ -41,7 +41,7 @@ for(l in 1:length(ftw)){
   betas<-c(0.7, 0.7, 0.7, 0.1, 0.1, 0.1, 0, 0, ftw[l], ftw[l], 0, 0, 0, 0)
   
   #Creating a table of AICs and BIC values
-  reps<-5
+  reps<-30
   
   fitTable<-data.frame(matrix(ncol=20, nrow=reps, ))
   colnames(fitTable)<-c("AICC",  "AICH", "AICI", "AICLog", "AICT", "BICC","BICH", "BICI","BICLog", "BICT" , "cvC", "cvH", "cvI", "cvLog", "cvT", "AUCC", "AUCH", "AUCI", "AUCLog", "AUCT")
@@ -49,7 +49,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=500
+    n=1000
     m=24
     mhalf<-m/2
     
@@ -71,8 +71,8 @@ for(l in 1:length(ftw)){
     xmat[,9]<-log(xmat[,7])*xmat[,2]
     
     #10th and 11th columns are going to represent time * Strong1 and Strong2, respectively
-    xmat[,10]<-(xmat[,7]/m)*xmat[,1]
-    xmat[,11]<-(xmat[,7]/m)*xmat[,2]
+    xmat[,10]<-(xmat[,7])*xmat[,1]
+    xmat[,11]<-(xmat[,7])*xmat[,2]
     
     #12th and 13th columns are going to represent interactions between Strong1*Weak1 and Strong2*Weak2
     xmat[,12]<-xmat[,1]*xmat[,4]
@@ -90,7 +90,7 @@ for(l in 1:length(ftw)){
     
     #Strong and Weak variables, plust two heaviside function variables
     dsT<-as.matrix(dsMaster[,c(1:6, 8:15)])
-    eventTimesMaybe<-runif(n, 1, m)
+    eventTimesMaybe<-round(runif(n, 1, m), 0)
     
     dataT<-permalgorithm(n, m, Xmat=dsT, XmatNames=c("Strong1", "Strong2", "Strong3", "Weak1", "Weak2", "Weak3", "logtStrong1", "logtStrong2", "tStrong1", "tStrong2", "Strong1Weak1", "Strong2Weak2", "Strong1H", "Strong2H"), eventRandom=eventTimesMaybe, betas=betas)
     
@@ -303,18 +303,18 @@ for(l in 1:length(ftw)){
   
 }
 
-GraphVectorAIC<-cbind(ftw, AICPropCI)
+GraphVectorAIC<-cbind(ftw, AICPropCT)
 plot(GraphVectorAIC)
 
-GraphVectorBIC<-cbind(ftw, BICPropCI)
+GraphVectorBIC<-cbind(ftw, BICPropCT)
 plot(GraphVectorBIC)
 
-GraphVectorcv<-cbind(ftw, cvPropCorrect)
+GraphVectorcv<-cbind(ftw, cvPropCT)
 plot(GraphVectorcv)
 
-GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
+GraphVectorAUC<-cbind(ftw, AUCPropCT)
 plot(GraphVectorAUC)
 
 #Run these when sim is completed. 
-SimInt500N320<-rbind(ftw, AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL, cvPropWC, cvPropWH, cvPropCI, cvPropWL, AUCPropWC, AUCPropWH, AUCPropCI, AUCPropWL)
-write.csv(SimInt500N320, file="SimInt500N320.csv", na=".")
+SimT1000N324Time<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropWL, AICPropCT, BICPropWC, BICPropWH, BICPropWI, BICPropWL, BICPropCT, cvPropWC, cvPropWH, cvPropWI, cvPropWL, cvPropCT, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropWL, AUCPropCT)
+write.csv(SimT1000N324Time, file="SimT1000N324Time.csv", na=".")
