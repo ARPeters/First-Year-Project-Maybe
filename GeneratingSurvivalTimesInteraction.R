@@ -49,7 +49,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=500
+    n=1000
     m=24
     mhalf<-m/2
     xmat<-matrix(nrow=n*m, ncol=15)
@@ -313,5 +313,5 @@ GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
 plot(GraphVectorAUC)
 
 #Run these when sim is completed. 
-SimInt500N320<-rbind(ftw, AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL, cvPropWC, cvPropWH, cvPropCI, cvPropWL, AUCPropWC, AUCPropWH, AUCPropCI, AUCPropWL)
-write.csv(SimInt500N320, file="SimInt500N320.csv", na=".")
+SimInt500N325TP<-rbind(ftw, AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL, cvPropWC, cvPropWH, cvPropCI, cvPropWL, AUCPropWC, AUCPropWH, AUCPropCI, AUCPropWL)
+write.csv(SimInt500N325TP, file="SimInt500N325TP.csv", na=".")
