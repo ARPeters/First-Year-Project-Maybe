@@ -49,7 +49,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=1000
+    n=500
     m=24
     mhalf=m/2
     
@@ -71,8 +71,8 @@ for(l in 1:length(ftw)){
     xmat[,9]<-log(xmat[,7])*xmat[,2]
     
     #10th and 11th columns are going to represent time * Strong1 and Strong2, respectively
-    xmat[,10]<-(xmat[,7])*xmat[,1]
-    xmat[,11]<-(xmat[,7])*xmat[,2]
+    xmat[,10]<-(xmat[,7]/m)*xmat[,1]
+    xmat[,11]<-(xmat[,7]/m)*xmat[,2]
     
     #12th and 13th columns are going to represent interactions between Strong1*Weak1 and Strong2*Weak2
     xmat[,12]<-xmat[,1]*xmat[,4]
@@ -314,5 +314,7 @@ GraphVectorAUC<-cbind(ftw, AUCPropCH)
 plot(GraphVectorAUC)
 
 #Run these when sim is completed. 
-SimH1000N324TP<-rbind(ftw, AICPropWC, AICPropCH, AICPropWI, AICPropWL, BICPropWC, BICPropCH, BICPropWI, BICPropWL, cvPropWC, cvPropCH, cvPropWI, cvPropWL, AUCPropWC, AUCPropCH, AUCPropWI, AUCPropWL)
-write.csv(SimH1000N324TP, file="SimH1000N324TP.csv", na=".")
+SimH500N325TP<-rbind(ftw, AICPropWC, AICPropCH, AICPropWI, AICPropWL, BICPropWC, BICPropCH, BICPropWI, BICPropWL, cvPropWC, cvPropCH, cvPropWI, cvPropWL, AUCPropWC, AUCPropCH, AUCPropWI, AUCPropWL)
+write.csv(SimH500N325TP, file="SimH500N325TP.csv", na=".")
+
+getwd()
