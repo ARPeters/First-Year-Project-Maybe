@@ -306,13 +306,12 @@ plot(GraphVectorAIC)
 GraphVectorBIC<-cbind(ftw, BICPropCI)
 plot(GraphVectorBIC)
 
-GraphVectorcv<-cbind(ftw, cvPropCorrect)
+GraphVectorcv<-cbind(ftw, cvPropCI)
 plot(GraphVectorcv)
 
-GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
+GraphVectorAUC<-cbind(ftw, AUCPropCI)
 plot(GraphVectorAUC)
 
 #Run these when sim is completed. 
 SimInt1000N325TP<-rbind(ftw, AICPropWC, AICPropWH, AICPropCI, AICPropWL, BICPropWC, BICPropWH, BICPropCI, BICPropWL, cvPropWC, cvPropWH, cvPropCI, cvPropWL, AUCPropWC, AUCPropWH, AUCPropCI, AUCPropWL)
 write.csv(SimInt1000N325TP, file="SimInt1000N325TP.csv", na=".")
-getwd()
