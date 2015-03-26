@@ -6,9 +6,9 @@ library(foreign)
 library(PermAlgo)
 library(ROCR)
 
-ftw<-c(0.7)
+#ftw<-c(0.7)
 #ftw<-c(0, 0.01, 0.35, 0.7)
-#ftw<-c(1:100)/100
+ftw<-c(1:100)/100
 
 cvPropCorrect<-vector(length=length(ftw))
 cvPropWC<-vector(length=length(ftw))
@@ -41,7 +41,7 @@ for(l in 1:length(ftw)){
   betas<-c(0.7, 0.7, 0.7, 0.1, 0.1, 0.1, ftw[l], ftw[l], 0, 0, 0, 0, 0, 0)
   
   #Creating a table of AICs and BIC values
-  reps<-5
+  reps<-30
   
   fitTable<-data.frame(matrix(ncol=20, nrow=reps, ))
   colnames(fitTable)<-c("AICC",  "AICH", "AICI", "AICLog", "AICT", "BICC","BICH", "BICI","BICLog", "BICT" , "cvC", "cvH", "cvI", "cvLog", "cvT", "AUCC", "AUCH", "AUCI", "AUCLog", "AUCT")
@@ -314,9 +314,7 @@ plot(GraphVectorcv)
 GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
 plot(GraphVectorAUC)
 
+SimLog1000N325TP<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropCorrect, BICPropWC, BICPropWH, BICPropWI, BICPropCorrect, cvPropWC, cvPropWH, cvPropWI, cvPropCorrect, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropCorrect)
 
-SimLog1000N322<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropCorrect, BICPropWC, BICPropWH, BICPropWI, BICPropCorrect, cvPropWC, cvPropWH, cvPropWI, cvPropCorrect, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropCorrect)
+write.csv(SimLog1000N325TP, file="SimLog1000N325TP.csv", na=".")
 
-write.csv(SimLog1000N322, file="SimLog1000N322.csv", na=".")
-#SimT1000N324Time<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropWL, AICPropCT, BICPropWC, BICPropWH, BICPropWI, BICPropWL, BICPropCT, cvPropWC, cvPropWH, cvPropWI, cvPropWL, cvPropCT, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropWL, AUCPropCT)
-#write.csv(SimT1000N324Time, file="SimT1000N324Time.csv", na=".")
