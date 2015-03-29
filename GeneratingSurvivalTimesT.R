@@ -1,4 +1,5 @@
 rm(list = ls(all.names = TRUE))
+
 library(cvTools)
 library(survsim)
 library(survival)
@@ -49,7 +50,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=500
+    n=1000
     m=24
     mhalf<-m/2
     
@@ -316,15 +317,15 @@ GraphVectorAUC<-cbind(ftw, AUCPropCT)
 plot(GraphVectorAUC)
 
 #Run these when sim is completed. 
-SimT500N329TP<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropWL, AICPropCT, BICPropWC, BICPropWH, BICPropWI, BICPropWL, BICPropCT, cvPropWC, cvPropWH, cvPropWI, cvPropWL, cvPropCT, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropWL, AUCPropCT)
-write.csv(SimT500N329TP, file="SimT500N329TP.csv", na=".")
+SimT1000N329TP<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropWL, AICPropCT, BICPropWC, BICPropWH, BICPropWI, BICPropWL, BICPropCT, cvPropWC, cvPropWH, cvPropWI, cvPropWL, cvPropCT, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropWL, AUCPropCT)
+write.csv(SimT1000N329TP, file="SimT1000N329TP.csv", na=".")
 
 #Just in case
-write.csv(AICPropTable, file="AICPropTableT500TP329.csv")
+write.csv(AICPropTable, file="AICPropTableT1000TP329.csv")
 
-write.csv(BICPropTable, file="BICPropTableT500TP329.csv")
+write.csv(BICPropTable, file="BICPropTableT1000TP329.csv")
 
-write.csv(cvPropTable, file="cvPropTableT500TP329.csv")
+write.csv(cvPropTable, file="cvPropTableT1000TP329.csv")
 
-write.csv(AUCPropTable, file="AUCPropTableT500TP329.csv")
+write.csv(AUCPropTable, file="AUCPropTableT1000TP329.csv")
 
