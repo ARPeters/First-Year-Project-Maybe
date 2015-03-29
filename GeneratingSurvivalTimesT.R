@@ -320,7 +320,6 @@ SimT500N329TP<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropWL, AICPropCT,
 write.csv(SimT500N329TP, file="SimT500N329TP.csv", na=".")
 
 #Just in case
-#Need formatting!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 write.csv(AICPropTable, file="AICPropTableT500TP329.csv")
 
 write.csv(BICPropTable, file="BICPropTableT500TP329.csv")
