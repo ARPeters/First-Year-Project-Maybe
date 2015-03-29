@@ -49,7 +49,7 @@ for(l in 1:length(ftw)){
   #For this weight of specific time function, create this many sets of data  
   for(i in 1:reps){
     
-    n=1000
+    n=500
     m=24
     mhalf<-m/2
     
