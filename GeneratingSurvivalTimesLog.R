@@ -314,7 +314,18 @@ plot(GraphVectorcv)
 GraphVectorAUC<-cbind(ftw, AUCPropCorrect)
 plot(GraphVectorAUC)
 
-SimLog1000N325TP<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropCorrect, BICPropWC, BICPropWH, BICPropWI, BICPropCorrect, cvPropWC, cvPropWH, cvPropWI, cvPropCorrect, AUCPropWC, AUCPropWH, AUCPropWI, AUCPropCorrect)
+SimLog500N329TP<-rbind(ftw, AICPropWC, AICPropWH, AICPropWI, AICPropCorrect, AICPropWT, 
+                       BICPropWC, BICPropWH, BICPropWI, BICPropCorrect, BICPropWT, 
+                       cvPropWC, cvPropWH, cvPropWI, cvPropCorrect, cvPropWT, 
+                       AUCPropWC, AUCPropWH, AUCPropWI, AUCPropCorrect, AUCPropWT)
 
-write.csv(SimLog1000N325TP, file="SimLog1000N325TP.csv", na=".")
+write.csv(SimLog500N329TP, file="SimLog500N329TP.csv", na=".")
+
+write.csv(AICPropTable, file="AICPropTableLog500TP329.csv")
+
+write.csv(BICPropTable, file="BICPropTablelog500TP329.csv")
+
+write.csv(cvPropTable, file="cvPropTablelog500TP329.csv")
+
+write.csv(AUCPropTable, file="AUCPropTablelog500TP329.csv")
 
